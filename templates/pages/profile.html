@@ -1,0 +1,26 @@
+
+{% extends "base_generic.html" %}
+
+{% block content %}
+    {% if client_data %}
+        <h5>Your profile data:</h5>
+        <ul>
+            {% for key, value in client_data.items %}
+                <li> {{key}}: {{value}} </li>
+            {% endfor %}
+        </ul>
+        {% if client_recipes %}
+            <h4>Your recipes:</h4>
+            <ul>
+                {% for recipe in client_recipes %}
+                    <li> <a href="{% url 'recipe' %}?id={{ recipe.id }}"> {{ recipe.name }}</a> </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <h4>You have not created any recipes yet.</h4>
+        {% endif %}
+
+    {% else %}
+        <p>No client data to show..</p>
+    {% endif %}
+{% endblock %}

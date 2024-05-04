@@ -1,0 +1,15 @@
+{% extends "base_generic.html" %}
+{% block content %}
+<h1>RPM_LIBRARY Home</h1>
+
+  <p>Welcome to <em>Kitchen</em>, a very basic Django website developed</p>
+
+<h2>Dynamic content</h2>
+
+  <p>Our library has the following record counts:</p>
+  <ul>
+    <li><strong>Recipes:</strong> {{ recipes }}</li>
+    <li><strong>Ingredients:</strong> {{ ingredients }}</li>
+  </ul>
+
+{% endblock %}

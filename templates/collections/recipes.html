@@ -1,0 +1,33 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <h1>Recipes</h1>
+
+    {% if recipes_list %}
+    <ul>
+
+      {% for recipe in recipes_list %}
+      <li>
+        <a href="{% url 'recipe' %}?id={{recipe.id}}">{{ recipe.name }}</a> by <b>{{ recipe.user.username }}</b> {{ recipe.created_at }} 
+      </li>
+      {% endfor %}
+    </ul>
+
+    {% else %}
+      <p>There are no recipes for now. Be the first!</p>
+    {% endif %}
+
+    <h3>{{errors}}</h3>
+    <form action="{% url 'recipes' %}" method="POST">
+        {% csrf_token %}
+        <label for="name">Name</label><br>
+        {{ form.name }} <br>
+        <label for="description">Description</label><br>
+        {{ form.description }} <br>
+        <label for="category">Category</label><br>
+        {{ form.category }} <br>
+        <label for="ingredients">Ingredients</label> <br>
+        {{ form.ingredients }} <br>
+        <button type="submit"> click</button>
+    </form>
+{% endblock %}

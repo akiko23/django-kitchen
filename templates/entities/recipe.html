@@ -1,0 +1,16 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <h1>Recipe page</h1>
+
+    {% if recipe %}
+      <ul>
+        <li>Title: {{ recipe.name }}</li>
+        <li>Description: {{ recipe.description }}</li>
+        <li>Created at: {{ recipe.created_at }}</li>
+        <li>Category: {{ recipe.category }}</li>
+      </ul>
+    {% else %}
+      <p>Recipe not found..</p>
+    {% endif %}
+{% endblock %}

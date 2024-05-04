@@ -1,0 +1,17 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <h1>Ingredient page</h1>
+
+    {% if ingredient %}
+    <ul>
+
+      <li>
+        <a>{{ ingredient.name }}</a>
+      </li>
+    </ul>
+
+    {% else %}
+      <p>Ingredient not found..</p>
+    {% endif %}
+{% endblock %}
