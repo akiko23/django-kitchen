@@ -1,17 +1,19 @@
 from typing import Any, Callable
+
 from django.shortcuts import render, redirect
 from django.views.generic import ListView
 from django.core.paginator import Paginator
 from rest_framework import viewsets, permissions, authentication
+from rest_framework.response import Response
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from rest_framework_swagger.views import get_swagger_view
 
-
-from .models import Recipe, Ingredient
-from .forms import RegistrationForm
-from .serializers import RecipeSerializer, IngredientSerializer
+from .models import Recipe, Ingredient, RecipeCategory, IngredientCategory, RecipeIngredient, Comment
+from .forms import RegistrationForm, CreateRecipeForm
+from .serializers import RecipeSerializer, IngredientSerializer, RecipeCategorySerializer, IngredientCategorySerializer, CommentSerializer
 
 
 def check_auth(view: Callable) -> Callable:
@@ -51,7 +53,9 @@ def create_listview(model_class, template, plural_name):
 RecipeListView = create_listview(Recipe, 'collections/recipes.html', 'recipes')
 IngredientListView = create_listview(Ingredient, 'collections/ingredients.html', 'ingredients')
 
-def create_view(model_class, template, model_name):
+RecipeListView.create = lambda self, request: print("blas lbl")
+
+def create_view(model_class, template, model_name, create_form = None):
     @login_required
     def view(request):
         target_id = request.GET.get('id', '')
@@ -60,16 +64,24 @@ def create_view(model_class, template, model_name):
             model_name: target_instance,
         }
 
-        if request.user.is_authenticated:
-            return render(
-                request,
-                template,
-                context,
-            )
-        return redirect('homepage')
+        if not request.user.is_authenticated:
+            return redirect('homepage')
+        
+        if request.method == 'POST':
+            form = create_form(request.POST)
+            if not form.is_valid():
+                context['errors'] = form.errors
+            else:
+                recipe = form.save()
+                return redirect('homepage')
+        return render(
+            request,
+            template,
+            context,
+        )
     return view
 
-recipe_view = create_view(Recipe, 'entities/recipe.html', 'recipe')
+recipe_view = create_view(Recipe, 'entities/recipe.html', 'recipe', CreateRecipeForm)
 ingredient_view = create_view(Ingredient, 'entities/ingredient.html', 'ingredient')
 
 def register(request):
@@ -92,25 +104,94 @@ def register(request):
 safe_methods = 'GET', 'HEAD', 'OPTIONS'
 unsafe_methods = 'POST', 'DELETE', 'PUT'
 
-class MyPermission(permissions.BasePermission):
-    def has_permission(self, request, _):
-        if request.method in safe_methods:
-            return bool(request.user and request.user.is_authenticated)
-        elif request.method in unsafe_methods:
-            return bool(request.user and request.user.is_superuser)
-        return False
+PRIVATE_RESOURCES = (RecipeCategory, IngredientCategory, Ingredient)
+
+def permission_by_model(model_class):
+    class MyPermission(permissions.BasePermission):
+        def has_permission(self, request, _):
+            is_authenticated = bool(request.user and request.user.is_authenticated)
+            
+            if model_class in PRIVATE_RESOURCES and request.method in unsafe_methods:
+                return is_authenticated and request.user.is_superuser
+            return is_authenticated
+    return MyPermission
+
 
 def create_viewset(model_class, serializer):
     class ViewSet(viewsets.ModelViewSet):
         queryset = model_class.objects.all()
         serializer_class = serializer
-        permission_classes = [MyPermission]
+        permission_classes = [permission_by_model(model_class)]
         authentication_classes = [authentication.TokenAuthentication]
-
+                
     return ViewSet
 
-RecipeViewSet = create_viewset(Recipe, RecipeSerializer)
+
+
+RecipeCategoryViewSet = create_viewset(RecipeCategory, RecipeCategorySerializer)
+IngredientCategoryViewSet = create_viewset(IngredientCategory, IngredientCategorySerializer)
 IngredinetViewSet = create_viewset(Ingredient, IngredientSerializer)
+
+
+class RecipeViewSet(viewsets.ModelViewSet):
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeSerializer
+    permission_classes = [permission_by_model(Recipe)]
+    authentication_classes = [authentication.TokenAuthentication]
+
+    def create(self, request):
+        if self.request.method == "POST":
+            data = request.data.copy()
+
+            serializer = self.serializer_class(data=data)
+            if not serializer.is_valid():
+                with open('/home/akiko/loggg.txt', 'w') as f:
+                    f.write(str(serializer.errors))
+                return Response({'errors' : serializer.errors}, status=400)
+            
+            new_recipe = Recipe.objects.create(
+                name=data['name'],
+                description=data['description'],
+                category=RecipeCategory(id=data['category']),
+                user=User.objects.get(id=self.request.user.id),
+            )
+
+            RecipeIngredient.objects.bulk_create(
+                [
+                    RecipeIngredient(
+                        recipe=new_recipe,
+                        ingredient=Ingredient.objects.get(id=ing['ingredient_id']),
+                        quantity=ing['quantity'],
+                    )
+                    for ing in data['ingredients']
+                ]
+            )
+            
+            return Response({'status' : 'ok'}, status=201)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [permission_by_model(Comment)]
+    authentication_classes = [authentication.TokenAuthentication]
+
+    def create(self, request):
+        if self.request.method == "POST":
+            data = request.data.copy()
+
+            serializer = self.serializer_class(data=data)
+            if not serializer.is_valid():
+                return Response({'errors' : serializer.errors}, status=400)
+            
+            Comment.objects.create(
+                text=data['text'],
+                recipe=Recipe.objects.get(id=data['recipe_id']),
+                user=User.objects.get(id=self.request.user.id),
+            )
+
+            return Response({'status' : 'ok'}, status=201)
+
 
 @login_required
 def profile(request):
@@ -121,6 +202,16 @@ def profile(request):
         'last name': client.last_name,
         'email': client.email,
     }
+
+    form = CreateRecipeForm()
+
+    ingredients = Ingredient.objects.all()
+    form.fields['ingredients'].choices = zip(range(len(ingredients)), ingredients)
+
+    recipe_categories = RecipeCategory.objects.all()
+    form.fields['category'].choices = zip(range(len(recipe_categories)), recipe_categories)
+
+
     return render(
         request,
         'pages/profile.html',
@@ -133,23 +224,9 @@ def profile(request):
                 """,
                 [client.id],
             ),
+            'form': form
         }
     )
-
-# @login_required
-# def buy(request):
-#     client = User.objects.get(email=request.user.email)
-#     recipe_id = request.GET.get('id', None)
-#     recipe = Recipe.objects.get(id=recipe_id) if recipe_id else None
-
-#     return render(
-#         request,
-#         'pages/buy.html',
-#         {
-#             'book': book,
-#             'money': client.money if client else None,
-#         }
-#     )
 
 
 def unauthorized(request):

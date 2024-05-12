@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'kitchen_app',
     'drf_spectacular',
+    'rest_framework.authtoken',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -91,11 +93,14 @@ DATABASES = {
 REST_FRAMEWORK = {
     # YOUR SETTINGS
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
 }
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Kitchen API',
-    'DESCRIPTION': 'bla bla bla',
+    'DESCRIPTION': 'bla bla',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     # OTHER SETTINGS

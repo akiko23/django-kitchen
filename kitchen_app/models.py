@@ -8,6 +8,9 @@ class RecipeCategory(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=64, null=False)
 
+    def __repr__(self):
+        return str(self.id)
+
     def __str__(self):
         return self.name
 
@@ -20,6 +23,9 @@ class RecipeCategory(models.Model):
 class IngredientCategory(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=64, null=False)
+
+    def __repr__(self):
+        return str(self.id)
 
     def __str__(self):
         return self.name
@@ -35,7 +41,7 @@ class Recipe(models.Model):
     name = models.CharField(max_length=64, null=False)
     description = models.TextField(null=False)
     
-    category = models.ForeignKey("RecipeCategory", on_delete=models.DO_NOTHING)
+    category = models.ForeignKey("RecipeCategory", null=True, on_delete=models.DO_NOTHING)
     ingredients = models.ManyToManyField("Ingredient", through="RecipeIngredient")
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now=True)
@@ -63,7 +69,7 @@ class Ingredient(models.Model):
     )
 
     def __str__(self) -> str:
-        return f"{self.name}" 
+        return self.name 
 
     
     class Meta:
@@ -107,7 +113,7 @@ class Comment(models.Model):
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.DO_NOTHING)
 
     def __str__(self) -> str:
-        return f"Comment {self.id} to {self.recipe.name}" 
+        return f"Comment {self.id} to {self.recipe.name}"
 
     class Meta:
         db_table = "comments"

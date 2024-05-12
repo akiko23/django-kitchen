@@ -1,14 +1,18 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from django.views.generic import TemplateView
-
+from rest_framework.authtoken import views as drf_views
 
 from . import views
 
+# from django.contrib.auth.urls
 
 router = DefaultRouter()
-router.register(r'recipes', views.RecipeViewSet)
+router.register(r'recipes', views.RecipeViewSet, basename='api-recipes')
 router.register(r'ingredients', views.IngredinetViewSet)
+router.register(r'recipe-categories', views.RecipeCategoryViewSet)
+router.register(r'ingredient-categories', views.IngredientCategoryViewSet)
+router.register(r'comments', views.CommentViewSet)
 
 urlpatterns = [
     path('', views.home_page, name='homepage'),
@@ -28,4 +32,5 @@ urlpatterns = [
         ),
         name="swagger-ui",
     ),
+    path('api/token-auth/', drf_views.obtain_auth_token)
 ]
