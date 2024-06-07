@@ -11,6 +11,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from rest_framework_swagger.views import get_swagger_view
 
+from rest_framework.authtoken.models import Token
+
+
 from .models import Recipe, Ingredient, RecipeCategory, IngredientCategory, RecipeIngredient, Comment
 from .forms import RegistrationForm, CreateRecipeForm
 from .serializers import RecipeSerializer, IngredientSerializer, RecipeCategorySerializer, IngredientCategorySerializer, CommentSerializer
@@ -59,7 +62,7 @@ def create_view(model_class, template, model_name, create_form = None):
     @login_required
     def view(request):
         target_id = request.GET.get('id', '')
-        target_instance = model_class.objects.get(id=target_id) if target_id else None
+        target_instance = model_class.objects.get(id=target_id) if target_id else None        
         context = {
             model_name: target_instance,
         }
@@ -67,19 +70,45 @@ def create_view(model_class, template, model_name, create_form = None):
         if not request.user.is_authenticated:
             return redirect('homepage')
         
+        auth_token = Token.objects.get_or_create(user=request.user)
+        context['auth_token'] = auth_token[0].key
+        
         if request.method == 'POST':
             form = create_form(request.POST)
-            if not form.is_valid():
-                context['errors'] = form.errors
-            else:
-                recipe = form.save()
-                return redirect('homepage')
+            data = form.data
+
+            new_recipe = Recipe.objects.create(
+                name=data['name'],
+                description=data['description'],
+                category=RecipeCategory(id=int(data['category'][0])),
+                user=User.objects.get(id=request.user.id),   
+            )
+
+            RecipeIngredient.objects.bulk_create(
+                [
+                    RecipeIngredient(
+                        recipe=new_recipe,
+                        ingredient=Ingredient.objects.get(id=int(ing)),
+                        quantity=1,
+                    )
+                    for ing in data['ingredients']
+                ]
+            )
+
+            context['recipe'] = new_recipe
+            return render(
+                request,
+                template,
+                context
+            )
+
         return render(
             request,
             template,
             context,
         )
     return view
+ 
 
 recipe_view = create_view(Recipe, 'entities/recipe.html', 'recipe', CreateRecipeForm)
 ingredient_view = create_view(Ingredient, 'entities/ingredient.html', 'ingredient')
@@ -145,8 +174,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
             serializer = self.serializer_class(data=data)
             if not serializer.is_valid():
-                with open('/home/akiko/loggg.txt', 'w') as f:
-                    f.write(str(serializer.errors))
                 return Response({'errors' : serializer.errors}, status=400)
             
             new_recipe = Recipe.objects.create(
@@ -206,10 +233,10 @@ def profile(request):
     form = CreateRecipeForm()
 
     ingredients = Ingredient.objects.all()
-    form.fields['ingredients'].choices = zip(range(len(ingredients)), ingredients)
+    form.fields['ingredients'].choices = zip(range(1, len(ingredients) + 1), ingredients)
 
     recipe_categories = RecipeCategory.objects.all()
-    form.fields['category'].choices = zip(range(len(recipe_categories)), recipe_categories)
+    form.fields['category'].choices = zip(range(1, len(recipe_categories) + 1), recipe_categories)
 
 
     return render(

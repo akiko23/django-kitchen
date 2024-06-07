@@ -9,7 +9,7 @@ from django.forms import (
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from .models import Ingredient, RecipeCategory
+from .models import Ingredient, RecipeCategory, Recipe
 
 
 class RegistrationForm(UserCreationForm):
@@ -28,3 +28,6 @@ class CreateRecipeForm(Form):
     category = ChoiceField(required=True)
     ingredients = MultipleChoiceField(required=True)
 
+    class Meta:
+        model = Recipe
+        fields = ['name', 'description', 'category', 'ingredients']

@@ -10,7 +10,24 @@
         <li>Created at: {{ recipe.created_at }}</li>
         <li>Category: {{ recipe.category }}</li>
       </ul>
-    {% else %}
+      <button type="submit" onclick="deleteRecipe({{ recipe.id }}, '{{ auth_token }}')" class="deletebtn">Delete</button>
+      
+      <script>
+        function deleteRecipe(id, authToken) {
+          fetch('/api/recipes/' + id,  {
+            headers: {
+              'Authorization': 'Token ' + authToken
+            },
+            method: 'DELETE'
+          })
+
+          window.location.assign("/");
+        }
+      </script>
+      {% else %}
       <p>Recipe not found..</p>
     {% endif %}
 {% endblock %}
+
+
+
