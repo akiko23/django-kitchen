@@ -9,7 +9,7 @@ from . import views
 
 router = DefaultRouter()
 router.register(r'recipes', views.RecipeViewSet, basename='api-recipes')
-router.register(r'ingredients', views.IngredinetViewSet)
+router.register(r'ingredients', views.IngredientViewSet)
 router.register(r'recipe-categories', views.RecipeCategoryViewSet)
 router.register(r'ingredient-categories', views.IngredientCategoryViewSet)
 router.register(r'comments', views.CommentViewSet)

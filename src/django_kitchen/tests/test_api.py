@@ -213,3 +213,131 @@ class CommentAPITest(TestCase):
             self.user, self.user_token,
             status.HTTP_201_CREATED, status.HTTP_200_OK, status.HTTP_204_NO_CONTENT
         )
+
+
+class RecipeCategoryAPITest(TestCase):
+    url = "/api/recipe-categories/"
+
+    def setUp(self):
+        self.client = APIClient()
+
+        self.user = User(username='user', password='user')
+        self.user.save()
+        self.superuser = User(username='admin', password='admin', is_superuser=True)
+        self.superuser.save()
+
+        self.user_token = Token(user=self.user)
+        self.superuser_token = Token(user=self.superuser)
+
+    def api_methods(
+            self, user: User, token: Token,
+            post_exp: int, put_exp: int, delete_exp: int,
+    ):
+        self.client.force_authenticate(user=user, token=token)
+
+        creation_attrs = {'name': 'Z'}
+
+        self.created_id = RecipeCategory.objects.create(**creation_attrs).id
+        instance_url = f'{self.url}{self.created_id}/'
+
+        # GET all
+        self.assertEqual(self.client.options(self.url).status_code, status.HTTP_200_OK)
+
+        # HEAD all
+        self.assertEqual(self.client.head(self.url).status_code, status.HTTP_200_OK)
+
+        # OPTIONS all
+        self.assertEqual(self.client.get(self.url).status_code, status.HTTP_200_OK)
+
+        # GET instance
+        self.assertEqual(self.client.get(instance_url).status_code, status.HTTP_200_OK)
+
+        # OPTIONS instance
+        self.assertEqual(self.client.get(instance_url).status_code, status.HTTP_200_OK)
+
+        # POST
+        creation_attrs['name'] = 'fasf'
+        self.assertEqual(self.client.post(self.url, creation_attrs, format='json').status_code, post_exp)
+
+        # PUT
+        creation_attrs['name'] = 'fasf2'
+        self.assertEqual(self.client.put(instance_url, creation_attrs, format='json').status_code, put_exp)
+
+        # DELETE
+        self.assertEqual(self.client.delete(instance_url).status_code, delete_exp)
+
+    def test_superuser(self):
+        self.api_methods(
+            self.superuser, self.superuser_token,
+            status.HTTP_201_CREATED, status.HTTP_200_OK, status.HTTP_204_NO_CONTENT
+        )
+
+    def test_user(self):
+        self.api_methods(
+            self.user, self.user_token,
+            status.HTTP_403_FORBIDDEN, status.HTTP_403_FORBIDDEN, status.HTTP_403_FORBIDDEN
+        )
+
+
+class IngredientCategoryAPITest(TestCase):
+    url = "/api/ingredient-categories/"
+
+    def setUp(self):
+        self.client = APIClient()
+
+        self.user = User(username='user', password='user')
+        self.user.save()
+        self.superuser = User(username='admin', password='admin', is_superuser=True)
+        self.superuser.save()
+
+        self.user_token = Token(user=self.user)
+        self.superuser_token = Token(user=self.superuser)
+
+    def api_methods(
+            self, user: User, token: Token,
+            post_exp: int, put_exp: int, delete_exp: int,
+    ):
+        self.client.force_authenticate(user=user, token=token)
+
+        creation_attrs = {'name': 'Z'}
+
+        self.created_id = IngredientCategory.objects.create(**creation_attrs).id
+        instance_url = f'{self.url}{self.created_id}/'
+
+        # GET all
+        self.assertEqual(self.client.options(self.url).status_code, status.HTTP_200_OK)
+
+        # HEAD all
+        self.assertEqual(self.client.head(self.url).status_code, status.HTTP_200_OK)
+
+        # OPTIONS all
+        self.assertEqual(self.client.get(self.url).status_code, status.HTTP_200_OK)
+
+        # GET instance
+        self.assertEqual(self.client.get(instance_url).status_code, status.HTTP_200_OK)
+
+        # OPTIONS instance
+        self.assertEqual(self.client.get(instance_url).status_code, status.HTTP_200_OK)
+
+        # POST
+        creation_attrs['name'] = 'fasf'
+        self.assertEqual(self.client.post(self.url, creation_attrs, format='json').status_code, post_exp)
+
+        # PUT
+        creation_attrs['name'] = 'fasf2'
+        self.assertEqual(self.client.put(instance_url, creation_attrs, format='json').status_code, put_exp)
+
+        # DELETE
+        self.assertEqual(self.client.delete(instance_url).status_code, delete_exp)
+
+    def test_superuser(self):
+        self.api_methods(
+            self.superuser, self.superuser_token,
+            status.HTTP_201_CREATED, status.HTTP_200_OK, status.HTTP_204_NO_CONTENT
+        )
+
+    def test_user(self):
+        self.api_methods(
+            self.user, self.user_token,
+            status.HTTP_403_FORBIDDEN, status.HTTP_403_FORBIDDEN, status.HTTP_403_FORBIDDEN
+        )

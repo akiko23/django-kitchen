@@ -3,7 +3,7 @@ requires = ["setuptools>=65.5.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "django-kitchen"
+name = "django_kitchen"
 version = "0.1.0"
 description = "FullStack CRUD app written in Django & DRF."
 authors = [
@@ -18,6 +18,8 @@ dependencies = [
     "djangorestframework==3.15.1",
     "drf-spectacular==0.27.2",
     "psycopg2==2.9.9",
+    "django-rest-swagger==2.2.0",
+    "python-dotenv==1.0.1",
 ]
 
 [project.optional-dependencies]
@@ -25,6 +27,10 @@ lint = [
     "mypy==1.7.1",
     "isort==5.12.0",
     "ruff==0.1.6",
+]
+
+test = [
+    "coverage==7.5.3"
 ]
 
 [project.urls]

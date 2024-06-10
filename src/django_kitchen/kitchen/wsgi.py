@@ -1,5 +1,4 @@
-"""
-WSGI config for kitchen project.
+"""WSGI config for kitchen project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 

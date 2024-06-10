@@ -9,7 +9,6 @@ from rest_framework.response import Response
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from rest_framework_swagger.views import get_swagger_view
 
 from rest_framework.authtoken.models import Token
 
@@ -55,8 +54,6 @@ def create_listview(model_class, template, plural_name):
 
 RecipeListView = create_listview(Recipe, 'collections/recipes.html', 'recipes')
 IngredientListView = create_listview(Ingredient, 'collections/ingredients.html', 'ingredients')
-
-RecipeListView.create = lambda self, request: print("blas lbl")
 
 def create_view(model_class, template, model_name, create_form = None):
     @login_required
@@ -118,7 +115,7 @@ def register(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            form.save()
             return redirect('homepage')
         else:
             errors = form.errors
@@ -159,7 +156,7 @@ def create_viewset(model_class, serializer):
 
 RecipeCategoryViewSet = create_viewset(RecipeCategory, RecipeCategorySerializer)
 IngredientCategoryViewSet = create_viewset(IngredientCategory, IngredientCategorySerializer)
-IngredinetViewSet = create_viewset(Ingredient, IngredientSerializer)
+IngredientViewSet = create_viewset(Ingredient, IngredientSerializer)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):

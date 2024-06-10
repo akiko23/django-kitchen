@@ -1,5 +1,4 @@
-"""
-ASGI config for kitchen project.
+"""ASGI config for kitchen project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 

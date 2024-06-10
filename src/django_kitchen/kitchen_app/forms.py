@@ -3,13 +3,11 @@ from django.forms import (
     ChoiceField,
     MultipleChoiceField,
     CharField, 
-    IntegerField, 
-    DecimalField, 
 )
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from .models import Ingredient, RecipeCategory, Recipe
+from .models import Recipe
 
 
 class RegistrationForm(UserCreationForm):
