@@ -1,0 +1,19 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <h1>Ingredient categories</h1>
+
+    {% if ingredient_categories_list %}
+    <ul>
+
+      {% for ingredient_category in ingredient_categories_list %}
+      <li>
+          <a href="{% url 'ingredients' %}?category_id={{ingredient_category.id}}">{{ ingredient_category.name }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+
+    {% else %}
+      <p>There are no ingredient categories for now</p>
+    {% endif %}
+{% endblock %}

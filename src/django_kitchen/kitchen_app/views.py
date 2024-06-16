@@ -12,10 +12,10 @@ from django.contrib.auth.models import User
 
 from rest_framework.authtoken.models import Token
 
-
 from .models import Recipe, Ingredient, RecipeCategory, IngredientCategory, RecipeIngredient, Comment
-from .forms import RegistrationForm, CreateRecipeForm
-from .serializers import RecipeSerializer, IngredientSerializer, RecipeCategorySerializer, IngredientCategorySerializer, CommentSerializer
+from .forms import RegistrationForm, CreateRecipeForm, CreateIngredientForm, CreateCommentForm
+from .serializers import RecipeSerializer, IngredientSerializer, RecipeCategorySerializer, IngredientCategorySerializer, \
+    CommentSerializer
 
 
 def check_auth(view: Callable) -> Callable:
@@ -23,7 +23,9 @@ def check_auth(view: Callable) -> Callable:
         if not (request.user and request.user.is_authenticated):
             return redirect('unauthorized')
         return view(request)
+
     return new_view
+
 
 def home_page(request):
     return render(
@@ -35,12 +37,14 @@ def home_page(request):
         }
     )
 
+
 def create_listview(model_class, template, plural_name):
     class View(LoginRequiredMixin, ListView):
         model = model_class
         template_name = template
         paginate_by = 10
         context_object_name = plural_name
+        ordering = ['id']
 
         def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
             context = super().get_context_data(**kwargs)
@@ -50,37 +54,83 @@ def create_listview(model_class, template, plural_name):
             page_obj = paginator.get_page(page)
             context[f'{plural_name}_list'] = page_obj
             return context
+
     return View
 
-RecipeListView = create_listview(Recipe, 'collections/recipes.html', 'recipes')
+
+def recipe_list_view(request):
+    target_category_id = request.GET.get('category_id', '')
+
+    category_inst = RecipeCategory.objects.get(id=target_category_id)
+
+    target_instances = Recipe.objects.filter(category_id=target_category_id) if target_category_id else None
+    context = {
+        "recipes_list": target_instances,
+        "category": category_inst
+    }
+
+    if not request.user.is_authenticated:
+        return redirect('homepage')
+
+    return render(
+        request,
+        "collections/recipes.html",
+        context,
+    )
+
+
+def ingredient_list_view(request):
+    target_category_id = request.GET.get('category_id', '')
+
+    category_inst = IngredientCategory.objects.get(id=target_category_id)
+
+    target_instances = Ingredient.objects.filter(category_id=target_category_id) if target_category_id else None
+    context = {
+        "ingredients_list": target_instances,
+        "category": category_inst
+    }
+
+    if not request.user.is_authenticated:
+        return redirect('homepage')
+
+    return render(
+        request,
+        "collections/ingredients.html",
+        context,
+    )
+
+
+RecipeCategoryListView = create_listview(RecipeCategory, 'collections/recipe_categories.html', 'recipe_categories')
+IngredientCategoryListView = create_listview(IngredientCategory, 'collections/ingredient_categories.html',
+                                             'ingredient_categories')
 IngredientListView = create_listview(Ingredient, 'collections/ingredients.html', 'ingredients')
 
-def create_view(model_class, template, model_name, create_form = None):
-    @login_required
-    def view(request):
-        target_id = request.GET.get('id', '')
-        target_instance = model_class.objects.get(id=target_id) if target_id else None        
-        context = {
-            model_name: target_instance,
-        }
 
-        if not request.user.is_authenticated:
-            return redirect('homepage')
-        
-        auth_token = Token.objects.get_or_create(user=request.user)
-        context['auth_token'] = auth_token[0].key
-        
-        if request.method == 'POST':
-            form = create_form(request.POST)
-            data = form.data
+def recipe_view(request):
+    target_id = request.GET.get('id', '')
+    target_instance = Recipe.objects.get(id=target_id) if target_id else None
+    context = {
+        'recipe': target_instance,
+    }
 
-            new_recipe = Recipe.objects.create(
-                name=data['name'],
-                description=data['description'],
-                category=RecipeCategory(id=int(data['category'][0])),
-                user=User.objects.get(id=request.user.id),   
-            )
+    if not request.user.is_authenticated:
+        return redirect('homepage')
 
+    auth_token = Token.objects.get_or_create(user=request.user)
+    context['auth_token'] = auth_token[0].key
+
+    if request.method == 'POST':
+        form = CreateRecipeForm(request.POST)
+        data = form.data
+
+        new_recipe = Recipe.objects.create(
+            name=data['name'],
+            description=data['description'],
+            category=RecipeCategory(id=int(data['category'][0])),
+            user=User.objects.get(id=request.user.id),
+        )
+
+        try:
             RecipeIngredient.objects.bulk_create(
                 [
                     RecipeIngredient(
@@ -91,24 +141,97 @@ def create_view(model_class, template, model_name, create_form = None):
                     for ing in data['ingredients']
                 ]
             )
+        except Ingredient.DoesNotExist:
+            pass
 
-            context['recipe'] = new_recipe
-            return render(
-                request,
-                template,
-                context
-            )
+        return redirect('profile')
 
+    comment_form = CreateCommentForm()
+    comment_form.fields['recipe'].choices = zip(range(1, 2), [target_instance])
+    context['comment_form'] = comment_form
+    context['comments'] = Comment.objects.filter(recipe_id=target_instance.id)
+    return render(
+        request,
+        'entities/recipe.html',
+        context,
+    )
+
+
+def ingredient_view(request):
+    target_id = request.GET.get('id', '')
+    target_instance = Ingredient.objects.get(id=target_id) if target_id else None
+    context = {
+        'ingredient': target_instance,
+    }
+
+    if not request.user.is_authenticated:
+        return redirect('homepage')
+
+    auth_token = Token.objects.get_or_create(user=request.user)
+    context['auth_token'] = auth_token[0].key
+
+    if request.method == 'POST':
+        form = CreateIngredientForm(request.POST)
+        data = form.data
+
+        new_ingredient = Ingredient.objects.create(
+            name=data['name'],
+            category=IngredientCategory(id=int(data['category'][0])),
+            price=data['price'],
+        )
+
+        context['ingredient'] = new_ingredient
         return render(
             request,
-            template,
-            context,
+            'entities/ingredient.html',
+            context
         )
-    return view
- 
 
-recipe_view = create_view(Recipe, 'entities/recipe.html', 'recipe', CreateRecipeForm)
-ingredient_view = create_view(Ingredient, 'entities/ingredient.html', 'ingredient')
+    return render(
+        request,
+        'entities/ingredient.html',
+        context,
+    )
+
+
+def comment_view(request):
+    target_id = request.GET.get('id', '')
+    target_instance = Comment.objects.get(id=target_id) if target_id else None
+    context = {
+        'comment': target_instance,
+    }
+
+    if not request.user.is_authenticated:
+        return redirect('homepage')
+
+    auth_token = Token.objects.get_or_create(user=request.user)
+    context['auth_token'] = auth_token[0].key
+
+    if request.method == 'POST':
+        form = CreateCommentForm(request.POST)
+
+        data = form.data
+
+        target_recipe = Recipe.objects.get(id=data['recipe'])
+        Comment.objects.create(
+            text=data['text'],
+            user=request.user,
+            recipe=target_recipe,
+        )
+
+        context['recipe'] = target_recipe
+        context['comments'] = Comment.objects.filter(recipe_id=target_recipe.id)
+
+        return redirect(
+            'profile'
+        )
+
+    return render(
+        request,
+        'entities/ingredient.html',
+        context,
+    )
+
 
 def register(request):
     errors = ''
@@ -127,19 +250,22 @@ def register(request):
         {'form': form, 'errors': errors}
     )
 
+
 safe_methods = 'GET', 'HEAD', 'OPTIONS'
 unsafe_methods = 'POST', 'DELETE', 'PUT'
 
 PRIVATE_RESOURCES = (RecipeCategory, IngredientCategory, Ingredient)
 
+
 def permission_by_model(model_class):
     class MyPermission(permissions.BasePermission):
         def has_permission(self, request, _):
             is_authenticated = bool(request.user and request.user.is_authenticated)
-            
+
             if model_class in PRIVATE_RESOURCES and request.method in unsafe_methods:
                 return is_authenticated and request.user.is_superuser
             return is_authenticated
+
     return MyPermission
 
 
@@ -149,9 +275,8 @@ def create_viewset(model_class, serializer):
         serializer_class = serializer
         permission_classes = [permission_by_model(model_class)]
         authentication_classes = [authentication.TokenAuthentication]
-                
-    return ViewSet
 
+    return ViewSet
 
 
 RecipeCategoryViewSet = create_viewset(RecipeCategory, RecipeCategorySerializer)
@@ -171,8 +296,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
             serializer = self.serializer_class(data=data)
             if not serializer.is_valid():
-                return Response({'errors' : serializer.errors}, status=400)
-            
+                return Response({'errors': serializer.errors}, status=400)
+
             new_recipe = Recipe.objects.create(
                 name=data['name'],
                 description=data['description'],
@@ -190,8 +315,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     for ing in data['ingredients']
                 ]
             )
-            
-            return Response({'status' : 'ok'}, status=201)
+
+            return Response({'status': 'ok'}, status=201)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -206,15 +331,15 @@ class CommentViewSet(viewsets.ModelViewSet):
 
             serializer = self.serializer_class(data=data)
             if not serializer.is_valid():
-                return Response({'errors' : serializer.errors}, status=400)
-            
+                return Response({'errors': serializer.errors}, status=400)
+
             Comment.objects.create(
                 text=data['text'],
                 recipe=Recipe.objects.get(id=data['recipe_id']),
                 user=User.objects.get(id=self.request.user.id),
             )
 
-            return Response({'status' : 'ok'}, status=201)
+            return Response({'status': 'ok'}, status=201)
 
 
 @login_required
@@ -235,6 +360,9 @@ def profile(request):
     recipe_categories = RecipeCategory.objects.all()
     form.fields['category'].choices = zip(range(1, len(recipe_categories) + 1), recipe_categories)
 
+    ing_form = CreateIngredientForm()
+    ingredient_categories = IngredientCategory.objects.all()
+    ing_form.fields['category'].choices = zip(range(1, len(ingredient_categories) + 1), ingredient_categories)
 
     return render(
         request,
@@ -248,7 +376,8 @@ def profile(request):
                 """,
                 [client.id],
             ),
-            'form': form
+            'form': form,
+            'ing_form': ing_form
         }
     )
 

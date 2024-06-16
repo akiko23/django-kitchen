@@ -10,8 +10,8 @@
     <li><a href="{% url 'homepage' %}">Homepage</a></li>
     {% if user.is_authenticated %}
       <li>Hello, <a href="{% url 'profile' %}">{{user.username}}</a>!</li>
-      <li><a href="{% url 'recipes' %}">Recipes</a></li>
-      <li><a href="{% url 'ingredients' %}">Ingredients</a></li>
+      <li><a href="{% url 'recipe_categories' %}">Recipes</a></li>
+      <li><a href="{% url 'ingredient_categories' %}">Ingredients</a></li>
       <li>
         <form method="post" action="{% url 'logout' %}?next=/register/" class="inline">
           {% csrf_token %}

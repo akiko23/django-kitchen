@@ -19,20 +19,39 @@
         {% else %}
             <h4>You have not created any recipe yet.</h4>
         {% endif %}
-        <h2>Create recipe</h2>
-        <h3>{{errors}}</h3>
-        <form action="{% url 'recipe' %}" method="POST">
-            {% csrf_token %}
-            <label for="name">Name</label><br>
-            {{ form.name }} <br>
-            <label for="description">Description</label><br>
-            {{ form.description }} <br>
-            <label for="category">Category</label><br>
-            {{ form.category }} <br>
-            <label for="ingredients">Ingredients</label> <br>
-            {{ form.ingredients }} <br>
-            <button type="submit"> click</button>
-        </form>
+        <div style="display:flex; gap:4vw">
+            <div class="f-1">
+                <h2>Create recipe</h2>
+                <h3>{{errors}}</h3>
+                <form action="{% url 'recipe' %}" method="POST">
+                    {% csrf_token %}
+                    <label for="name">Name</label><br>
+                    {{ form.name }} <br>
+                    <label for="description">Description</label><br>
+                    {{ form.description }} <br>
+                    <label for="category">Category</label><br>
+                    {{ form.category }} <br>
+                    <label for="ingredients">Ingredients</label> <br>
+                    {{ form.ingredients }} <br>
+                    <button type="submit">create</button>
+                </form>
+            </div>
+            <br>
+            <div class="f-2">
+                <h2>Create ingredient</h2>
+                <h3>{{errors}}</h3>
+                <form action="{% url 'ingredient' %}" method="POST">
+                    {% csrf_token %}
+                    <label for="name">Name</label><br>
+                    {{ ing_form.name }} <br>
+                    <label for="category">Category</label><br>
+                    {{ ing_form.category }} <br>
+                    <label for="price">Price per 100g</label><br>
+                    {{ ing_form.price }} <br>
+                    <button type="submit">create</button>
+                </form>
+            </div>
+        </div>
 
     {% else %}
         <p>No client data to show..</p>

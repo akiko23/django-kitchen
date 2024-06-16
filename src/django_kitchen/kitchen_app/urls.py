@@ -16,9 +16,12 @@ router.register(r'comments', views.CommentViewSet)
 
 urlpatterns = [
     path('', views.home_page, name='homepage'),
-    path('recipes/', views.RecipeListView.as_view(), name='recipes'),
+    path('recipes/', views.recipe_list_view, name='recipes'),
+    path('recipe-categories/', views.RecipeCategoryListView.as_view(), name='recipe_categories'),
     path('recipe/', views.recipe_view, name='recipe'),
-    path('ingredients/', views.IngredientListView.as_view(), name='ingredients'),
+    path('comment/', views.comment_view, name='comment'),
+    path('ingredient-categories/', views.IngredientCategoryListView.as_view(), name='ingredient_categories'),
+    path('ingredients/', views.ingredient_list_view, name='ingredients'),
     path('ingredient/', views.ingredient_view, name='ingredient'),
     path('register/', views.register, name='register'),
     path('accounts/', include('django.contrib.auth.urls')),

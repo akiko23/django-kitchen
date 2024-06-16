@@ -1,3 +1,4 @@
+import django.conf.global_settings
 from django.db import models
 from django.core.validators import MinValueValidator
 
@@ -40,7 +41,7 @@ class Recipe(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=64, null=False)
     description = models.TextField(null=False)
-    
+
     category = models.ForeignKey("RecipeCategory", null=True, on_delete=models.DO_NOTHING)
     ingredients = models.ManyToManyField("Ingredient", through="RecipeIngredient")
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -48,7 +49,7 @@ class Recipe(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name} by {self.user}"
-    
+
     class Meta:
         db_table = "recipes"
         verbose_name = 'recipe'
@@ -60,7 +61,7 @@ class Ingredient(models.Model):
     name = models.CharField(max_length=64, null=False, unique=True)
     category = models.ForeignKey("IngredientCategory", on_delete=models.CASCADE)
     price = models.IntegerField(
-        null=False, 
+        null=False,
         blank=False,
         validators=[
             MinValueValidator(1),
@@ -69,9 +70,8 @@ class Ingredient(models.Model):
     )
 
     def __str__(self) -> str:
-        return self.name 
+        return self.name
 
-    
     class Meta:
         db_table = "ingredients"
         verbose_name = 'ingredient'
@@ -80,8 +80,8 @@ class Ingredient(models.Model):
 
 class RecipeIngredient(models.Model):
     quantity = models.IntegerField(
-        null=False, 
-        blank=False, 
+        null=False,
+        blank=False,
         default=1,
         validators=[
             MinValueValidator(1),
@@ -90,10 +90,9 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey("Recipe", on_delete=models.CASCADE)
     ingredient = models.ForeignKey("Ingredient", on_delete=models.CASCADE)
 
-
     def __str__(self) -> str:
-        return f"{self.ingredient.name} for {self.recipe.name}" 
-    
+        return f"{self.ingredient.name} for {self.recipe.name}"
+
     class Meta:
         db_table = "recipes_ingredients"
         unique_together = (
@@ -103,12 +102,11 @@ class RecipeIngredient(models.Model):
         verbose_name_plural = 'relationships between recipes and ingredients'
 
 
-
 class Comment(models.Model):
     id = models.AutoField(primary_key=True)
     text = models.TextField(null=False)
     published_on = models.DateTimeField(null=False, auto_now=True)
-    
+
     recipe = models.ForeignKey(to="Recipe", on_delete=models.DO_NOTHING)
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.DO_NOTHING)
 

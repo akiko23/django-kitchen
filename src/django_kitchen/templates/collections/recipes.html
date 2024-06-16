@@ -1,19 +1,23 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
-    <h1>Recipes</h1>
+    {% if category %}
+        <h1>Recipes of {{ category.name }}</h1>
 
-    {% if recipes_list %}
-    <ul>
+        {% if recipes_list %}
+        <ul>
 
-      {% for recipe in recipes_list %}
-      <li>
-        <a href="{% url 'recipe' %}?id={{recipe.id}}">{{ recipe.name }}</a> by <b>{{ recipe.user.username }}</b> {{ recipe.created_at }} 
-      </li>
-      {% endfor %}
-    </ul>
+          {% for recipe in recipes_list %}
+          <li>
+            <a href="{% url 'recipe' %}?id={{recipe.id}}">{{ recipe.name }}</a> by <b>{{ recipe.user.username }}</b> {{ recipe.created_at }}
+          </li>
+          {% endfor %}
+        </ul>
 
+        {% else %}
+          <p>There are no recipes for now</p>
+        {% endif %}
     {% else %}
-      <p>There are no recipes for now</p>
+        <h1>No such recipe category</h1>
     {% endif %}
 {% endblock %}

@@ -1,19 +1,23 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
-    <h1>Ingredients</h1>
-    <p>Here is the list of the ingredients you can use in your recipes</p>
-    {% if ingredients_list %}
-    <ul>
+   {% if category %}
+        <h1>Ingredients of category '{{ category.name }}'</h1>
+        <p>Here is the list of the ingredients you can use in your recipes</p>
+        {% if ingredients_list %}
+        <ul>
 
-      {% for ingredient in ingredients_list %}
-      <li>
-        <a href="{% url 'ingredient' %}?id={{ingredient.id}}">{{ ingredient.name }}</a> 
-      </li>
-      {% endfor %}
-    </ul>
+          {% for ingredient in ingredients_list %}
+          <li>
+            <a href="{% url 'ingredient' %}?id={{ingredient.id}}">{{ ingredient.name }}</a>
+          </li>
+          {% endfor %}
+        </ul>
 
+        {% else %}
+          <p>There are no ingredients for now..</p>
+        {% endif %}
     {% else %}
-      <p>There are no ingredients for now..</p>
+      <h1>No such ingredient category</h1>
     {% endif %}
 {% endblock %}
