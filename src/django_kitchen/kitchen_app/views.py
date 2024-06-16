@@ -147,7 +147,7 @@ def recipe_view(request):
         return redirect('profile')
 
     comment_form = CreateCommentForm()
-    comment_form.fields['recipe'].choices = zip(range(1, 2), [target_instance])
+    comment_form.fields['recipe'].choices = zip([target_instance.id], [target_instance])
     context['comment_form'] = comment_form
     context['comments'] = Comment.objects.filter(recipe_id=target_instance.id)
     return render(
@@ -195,18 +195,6 @@ def ingredient_view(request):
 
 
 def comment_view(request):
-    target_id = request.GET.get('id', '')
-    target_instance = Comment.objects.get(id=target_id) if target_id else None
-    context = {
-        'comment': target_instance,
-    }
-
-    if not request.user.is_authenticated:
-        return redirect('homepage')
-
-    auth_token = Token.objects.get_or_create(user=request.user)
-    context['auth_token'] = auth_token[0].key
-
     if request.method == 'POST':
         form = CreateCommentForm(request.POST)
 
@@ -219,18 +207,9 @@ def comment_view(request):
             recipe=target_recipe,
         )
 
-        context['recipe'] = target_recipe
-        context['comments'] = Comment.objects.filter(recipe_id=target_recipe.id)
-
         return redirect(
             'profile'
         )
-
-    return render(
-        request,
-        'entities/ingredient.html',
-        context,
-    )
 
 
 def register(request):
@@ -355,14 +334,23 @@ def profile(request):
     form = CreateRecipeForm()
 
     ingredients = Ingredient.objects.all()
-    form.fields['ingredients'].choices = zip(range(1, len(ingredients) + 1), ingredients)
+    form.fields['ingredients'].choices = zip(
+        [ing.id for ing in ingredients],
+        ingredients
+    )
 
     recipe_categories = RecipeCategory.objects.all()
-    form.fields['category'].choices = zip(range(1, len(recipe_categories) + 1), recipe_categories)
+    form.fields['category'].choices = zip(
+        [recipe_c.id for recipe_c in recipe_categories],
+        recipe_categories
+    )
 
     ing_form = CreateIngredientForm()
     ingredient_categories = IngredientCategory.objects.all()
-    ing_form.fields['category'].choices = zip(range(1, len(ingredient_categories) + 1), ingredient_categories)
+    ing_form.fields['category'].choices = zip(
+        [ing_c.id for ing_c in ingredient_categories],
+        ingredient_categories
+    )
 
     return render(
         request,
