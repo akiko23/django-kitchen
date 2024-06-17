@@ -121,12 +121,13 @@ def recipe_view(request):
 
     if request.method == 'POST':
         form = CreateRecipeForm(request.POST)
-        data = form.data
+        form.full_clean()
+        data = form.cleaned_data
 
         new_recipe = Recipe.objects.create(
             name=data['name'],
             description=data['description'],
-            category=RecipeCategory(id=int(data['category'][0])),
+            category=data['category'],
             user=User.objects.get(id=request.user.id),
         )
 
@@ -135,7 +136,7 @@ def recipe_view(request):
                 [
                     RecipeIngredient(
                         recipe=new_recipe,
-                        ingredient=Ingredient.objects.get(id=int(ing)),
+                        ingredient=ing,
                         quantity=1,
                     )
                     for ing in data['ingredients']
@@ -145,6 +146,8 @@ def recipe_view(request):
             pass
 
         return redirect('profile')
+
+    context['recipe_ingredients'] = target_instance.ingredients.all()
 
     comment_form = CreateCommentForm()
     comment_form.fields['recipe'].choices = zip([target_instance.id], [target_instance])
@@ -172,11 +175,12 @@ def ingredient_view(request):
 
     if request.method == 'POST':
         form = CreateIngredientForm(request.POST)
-        data = form.data
+        form.full_clean()
+        data = form.cleaned_data
 
         new_ingredient = Ingredient.objects.create(
             name=data['name'],
-            category=IngredientCategory(id=int(data['category'][0])),
+            category=data['category'],
             price=data['price'],
         )
 
@@ -332,25 +336,11 @@ def profile(request):
     }
 
     form = CreateRecipeForm()
-
-    ingredients = Ingredient.objects.all()
-    form.fields['ingredients'].choices = zip(
-        [ing.id for ing in ingredients],
-        ingredients
-    )
-
-    recipe_categories = RecipeCategory.objects.all()
-    form.fields['category'].choices = zip(
-        [recipe_c.id for recipe_c in recipe_categories],
-        recipe_categories
-    )
+    form.fields['ingredients'].queryset = Ingredient.objects.all()
+    form.fields['category'].queryset = RecipeCategory.objects.all()
 
     ing_form = CreateIngredientForm()
-    ingredient_categories = IngredientCategory.objects.all()
-    ing_form.fields['category'].choices = zip(
-        [ing_c.id for ing_c in ingredient_categories],
-        ingredient_categories
-    )
+    ing_form.fields['category'].queryset = IngredientCategory.objects.all()
 
     return render(
         request,

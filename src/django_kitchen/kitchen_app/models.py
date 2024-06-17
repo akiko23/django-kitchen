@@ -1,4 +1,3 @@
-import django.conf.global_settings
 from django.db import models
 from django.core.validators import MinValueValidator
 

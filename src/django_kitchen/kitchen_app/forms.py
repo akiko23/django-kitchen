@@ -1,13 +1,12 @@
 from django.forms import (
     Form,
     ChoiceField,
-    MultipleChoiceField,
-    CharField, IntegerField, Textarea
+    CharField, IntegerField, ModelChoiceField, ModelMultipleChoiceField
 )
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from .models import Recipe, Ingredient, Comment
+from .models import Recipe, Ingredient, Comment, IngredientCategory, RecipeCategory
 
 
 class RegistrationForm(UserCreationForm):
@@ -23,8 +22,14 @@ class RegistrationForm(UserCreationForm):
 class CreateRecipeForm(Form):
     name = CharField(max_length=100, required=True)
     description = CharField(max_length=2000, required=True)
-    category = ChoiceField(required=True)
-    ingredients = MultipleChoiceField(required=True)
+    category = ModelChoiceField(
+        queryset=RecipeCategory.objects.all(),
+        required=True
+    )
+    ingredients = ModelMultipleChoiceField(
+        queryset=Ingredient.objects.all(),
+        required=True,
+    )
 
     class Meta:
         model = Recipe
@@ -33,7 +38,10 @@ class CreateRecipeForm(Form):
 
 class CreateIngredientForm(Form):
     name = CharField(max_length=100, required=True)
-    category = ChoiceField(required=True)
+    category = ModelChoiceField(
+        queryset=IngredientCategory.objects.all(),
+        required=True
+    )
     price = IntegerField(required=True)
 
     class Meta:
