@@ -5,10 +5,9 @@
 
     {% if ingredient %}
     <ul>
-
-      <li>
-        <a>{{ ingredient.name }}</a>
-      </li>
+        <li>Name: <b>{{ ingredient.name }}</b></li>
+        <li>Category: <a href="{% url 'ingredients' %}?category_id={{ ingredient.category.id }}">{{ ingredient.category }}</a></li>
+        <li>Price per 100g: <b>{{ ingredient.price }} RUB</b></li>
     </ul>
 
     {% else %}
