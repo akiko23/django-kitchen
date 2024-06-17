@@ -21,7 +21,8 @@ jobs:
     - run: pip install .[test]
     - name: Run tests with django
       run: |
-        cd src/django_kitchen && python manage.py test
+        cd src/django_kitchen
+        python manage.py migrate && python manage.py test
 
   lint:
     name: django_kitchen lint
