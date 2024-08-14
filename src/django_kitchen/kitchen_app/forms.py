@@ -1,12 +1,21 @@
-from django.forms import (
-    Form,
-    ChoiceField,
-    CharField, IntegerField, ModelChoiceField, ModelMultipleChoiceField
-)
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.forms import (
+    CharField,
+    ChoiceField,
+    Form,
+    IntegerField,
+    ModelChoiceField,
+    ModelMultipleChoiceField,
+)
 
-from .models import Recipe, Ingredient, Comment, IngredientCategory, RecipeCategory
+from .models import (
+    Comment,
+    Ingredient,
+    IngredientCategory,
+    Recipe,
+    RecipeCategory,
+)
 
 
 class RegistrationForm(UserCreationForm):

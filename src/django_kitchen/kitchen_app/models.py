@@ -1,7 +1,6 @@
-from django.db import models
-from django.core.validators import MinValueValidator
-
 from django.conf.global_settings import AUTH_USER_MODEL
+from django.core.validators import MinValueValidator
+from django.db import models
 
 
 class RecipeCategory(models.Model):

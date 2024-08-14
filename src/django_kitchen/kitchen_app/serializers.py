@@ -1,5 +1,13 @@
 from rest_framework import serializers
-from .models import Recipe, Ingredient, RecipeCategory, IngredientCategory, RecipeIngredient, Comment
+
+from .models import (
+    Comment,
+    Ingredient,
+    IngredientCategory,
+    Recipe,
+    RecipeCategory,
+    RecipeIngredient,
+)
 
 
 class IngredientCategorySerializer(serializers.HyperlinkedModelSerializer):

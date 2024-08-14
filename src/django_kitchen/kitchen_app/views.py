@@ -1,30 +1,36 @@
-from typing import Any, Callable
-
-from django.shortcuts import render, redirect
-from django.views.generic import ListView
-from django.core.paginator import Paginator
-from rest_framework import viewsets, permissions, authentication
-from rest_framework.response import Response
+from typing import Any
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-
+from django.core.paginator import Paginator
+from django.shortcuts import redirect, render
+from django.views.generic import ListView
+from rest_framework import authentication, permissions, viewsets
 from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
 
-from .models import Recipe, Ingredient, RecipeCategory, IngredientCategory, RecipeIngredient, Comment
-from .forms import RegistrationForm, CreateRecipeForm, CreateIngredientForm, CreateCommentForm
-from .serializers import RecipeSerializer, IngredientSerializer, RecipeCategorySerializer, IngredientCategorySerializer, \
-    CommentSerializer
-
-
-def check_auth(view: Callable) -> Callable:
-    def new_view(request):
-        if not (request.user and request.user.is_authenticated):
-            return redirect('unauthorized')
-        return view(request)
-
-    return new_view
+from .forms import (
+    CreateCommentForm,
+    CreateIngredientForm,
+    CreateRecipeForm,
+    RegistrationForm,
+)
+from .models import (
+    Comment,
+    Ingredient,
+    IngredientCategory,
+    Recipe,
+    RecipeCategory,
+    RecipeIngredient,
+)
+from .serializers import (
+    CommentSerializer,
+    IngredientCategorySerializer,
+    IngredientSerializer,
+    RecipeCategorySerializer,
+    RecipeSerializer,
+)
 
 
 def home_page(request):
@@ -80,6 +86,9 @@ def recipe_list_view(request):
 
 
 def ingredient_list_view(request):
+    if not request.user.is_authenticated:
+        return redirect('homepage')
+
     target_category_id = request.GET.get('category_id', '')
 
     category_inst = IngredientCategory.objects.get(id=target_category_id)
@@ -90,9 +99,6 @@ def ingredient_list_view(request):
         "category": category_inst
     }
 
-    if not request.user.is_authenticated:
-        return redirect('homepage')
-
     return render(
         request,
         "collections/ingredients.html",
@@ -100,21 +106,34 @@ def ingredient_list_view(request):
     )
 
 
-RecipeCategoryListView = create_listview(RecipeCategory, 'collections/recipe_categories.html', 'recipe_categories')
-IngredientCategoryListView = create_listview(IngredientCategory, 'collections/ingredient_categories.html',
-                                             'ingredient_categories')
-IngredientListView = create_listview(Ingredient, 'collections/ingredients.html', 'ingredients')
+RecipeCategoryListView = create_listview(
+    RecipeCategory,
+    'collections/recipe_categories.html',
+    'recipe_categories'
+)
+IngredientCategoryListView = create_listview(
+    IngredientCategory,
+    'collections/ingredient_categories.html',
+    'ingredient_categories'
+)
 
 
 def recipe_view(request):
-    target_id = request.GET.get('id', '')
-    target_instance = Recipe.objects.get(id=target_id) if target_id else None
-    context = {
-        'recipe': target_instance,
-    }
-
     if not request.user.is_authenticated:
         return redirect('homepage')
+
+    target_id = request.GET.get('id', '')
+    try:
+        target_instance = Recipe.objects.get(id=target_id) if target_id else None
+        context = {
+            'recipe': target_instance,
+        }
+    except Recipe.DoesNotExist:
+        return render(
+            request,
+            'entities/recipe.html',
+            {},
+        )
 
     auth_token = Token.objects.get_or_create(user=request.user)
     context['auth_token'] = auth_token[0].key
@@ -161,14 +180,21 @@ def recipe_view(request):
 
 
 def ingredient_view(request):
-    target_id = request.GET.get('id', '')
-    target_instance = Ingredient.objects.get(id=target_id) if target_id else None
-    context = {
-        'ingredient': target_instance,
-    }
-
     if not request.user.is_authenticated:
         return redirect('homepage')
+
+    target_id = request.GET.get('id', '')
+    try:
+        target_instance = Ingredient.objects.get(id=target_id) if target_id else None
+        context = {
+            'ingredient': target_instance,
+        }
+    except Ingredient.DoesNotExist:
+        return render(
+            request,
+            'entities/ingredient.html',
+            {},
+        )
 
     auth_token = Token.objects.get_or_create(user=request.user)
     context['auth_token'] = auth_token[0].key
@@ -359,9 +385,3 @@ def profile(request):
         }
     )
 
-
-def unauthorized(request):
-    return render(
-        request,
-        'pages/unauthorized.html',
-    )
