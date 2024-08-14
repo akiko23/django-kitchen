@@ -1,10 +1,16 @@
+from django.contrib.auth.models import User
 from django.test import TestCase
-from rest_framework.test import APIClient
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from django.contrib.auth.models import User
+from rest_framework.test import APIClient
 
-from kitchen_app.models import Recipe, Ingredient, Comment, RecipeCategory, IngredientCategory
+from kitchen_app.models import (
+    Comment,
+    Ingredient,
+    IngredientCategory,
+    Recipe,
+    RecipeCategory,
+)
 
 
 class RecipeAPITest(TestCase):
@@ -22,7 +28,7 @@ class RecipeAPITest(TestCase):
         self.superuser_token = Token(user=self.superuser)
 
         self.r_cat = RecipeCategory.objects.create(id=1, name='1')
-        
+
         i_cat = IngredientCategory.objects.create(id=1, name='a')
         self.ingredient = Ingredient.objects.create(id=1, name='a', category=i_cat, price=2)
 
@@ -32,7 +38,7 @@ class RecipeAPITest(TestCase):
     ):
         self.client.force_authenticate(user=user, token=token)
 
-        creation_attrs =  {'name': 'Aaaaaa', 'description': 'abcdefg'}
+        creation_attrs = {'name': 'Aaaaaa', 'description': 'abcdefg'}
 
         self.created_id = Recipe.objects.create(**creation_attrs, category=self.r_cat, user=user).id
         instance_url = f'{self.url}{self.created_id}/'
@@ -56,6 +62,9 @@ class RecipeAPITest(TestCase):
 
         # POST
         self.assertEqual(self.client.post(self.url, creation_attrs, format='json').status_code, post_exp)
+
+        # POST with invalid creation attrs
+        self.assertEqual(self.client.post(self.url, {}, format='json').status_code, status.HTTP_400_BAD_REQUEST)
 
         # PUT
         self.assertEqual(self.client.put(instance_url, creation_attrs, format='json').status_code, put_exp)
@@ -98,7 +107,7 @@ class IngredientAPITest(TestCase):
     ):
         self.client.force_authenticate(user=user, token=token)
 
-        creation_attrs =  {'name': 'Z', 'price': 2}
+        creation_attrs = {'name': 'Z', 'price': 2}
 
         self.created_id = Ingredient.objects.create(**creation_attrs, category=self.i_cat).id
         instance_url = f'{self.url}{self.created_id}/'
@@ -170,7 +179,7 @@ class CommentAPITest(TestCase):
     ):
         self.client.force_authenticate(user=user, token=token)
 
-        creation_attrs =  {'text': 'bla bla'}
+        creation_attrs = {'text': 'bla bla'}
 
         self.created_id = Comment.objects.create(**creation_attrs, user=self.user, recipe=self.recipe).id
         instance_url = f'{self.url}{self.created_id}/'
@@ -195,6 +204,9 @@ class CommentAPITest(TestCase):
 
         # POST
         self.assertEqual(self.client.post(self.url, creation_attrs, format='json').status_code, post_exp)
+
+        # POST with invalid creation attrs
+        self.assertEqual(self.client.post(self.url, {}, format='json').status_code, status.HTTP_400_BAD_REQUEST)
 
         # PUT
         self.assertEqual(self.client.put(instance_url, creation_attrs, format='json').status_code, put_exp)
