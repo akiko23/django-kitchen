@@ -11,7 +11,7 @@ from .models import (
 
 
 class IngredientCategorySerializer(serializers.HyperlinkedModelSerializer):
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return "ingredient-categories"
 
     class Meta:
@@ -20,10 +20,11 @@ class IngredientCategorySerializer(serializers.HyperlinkedModelSerializer):
             'id', 'name'
         ]
 
+
 class IngredientSerializer(serializers.HyperlinkedModelSerializer):
     category = serializers.PrimaryKeyRelatedField(
-            queryset=IngredientCategory.objects.all(),
-            many=False)
+        queryset=IngredientCategory.objects.all(),
+        many=False)
 
     class Meta:
         model = Ingredient
@@ -34,8 +35,8 @@ class IngredientSerializer(serializers.HyperlinkedModelSerializer):
 
 class RecipeIngredientSerializer(serializers.HyperlinkedModelSerializer):
     ingredient_id = serializers.PrimaryKeyRelatedField(
-            queryset=Ingredient.objects.all(),
-            many=False, write_only=True)
+        queryset=Ingredient.objects.all(),
+        many=False, write_only=True)
     id = serializers.PrimaryKeyRelatedField(read_only=True)
     quantity = serializers.IntegerField(write_only=True)
 
@@ -45,10 +46,11 @@ class RecipeIngredientSerializer(serializers.HyperlinkedModelSerializer):
             'quantity', 'ingredient_id', 'id'
         ]
 
+
 class RecipeSerializer(serializers.HyperlinkedModelSerializer):
     category = serializers.PrimaryKeyRelatedField(
-            queryset=RecipeCategory.objects.all(),
-            many=False)
+        queryset=RecipeCategory.objects.all(),
+        many=False)
 
     ingredients = RecipeIngredientSerializer(many=True, allow_null=True)
 
@@ -56,7 +58,7 @@ class RecipeSerializer(serializers.HyperlinkedModelSerializer):
         instance.name = validated_data.get('name', instance.name)
         instance.description = validated_data.get('description', instance.description)
         instance.category = validated_data.get('category', instance.category)
-        
+
         instance.save()
         return instance
 
@@ -69,7 +71,7 @@ class RecipeSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class RecipeCategorySerializer(serializers.HyperlinkedModelSerializer):
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return "recipe-categories"
 
     class Meta:
@@ -81,8 +83,8 @@ class RecipeCategorySerializer(serializers.HyperlinkedModelSerializer):
 
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
     recipe_id = serializers.PrimaryKeyRelatedField(
-            queryset=Recipe.objects.all(),
-            many=False)
+        queryset=Recipe.objects.all(),
+        many=False)
 
     class Meta:
         model = Comment

@@ -122,25 +122,31 @@ def recipe_view(request):
     if not request.user.is_authenticated:
         return redirect('homepage')
 
+    auth_token = Token.objects.get_or_create(user=request.user)
+    context = {
+        'auth_token': auth_token[0].key
+    }
+
     target_id = request.GET.get('id', '')
     try:
         target_instance = Recipe.objects.get(id=target_id) if target_id else None
-        context = {
-            'recipe': target_instance,
-        }
+        context['recipe'] = target_instance
     except Recipe.DoesNotExist:
         return render(
             request,
             'entities/recipe.html',
-            {},
+            context,
         )
-
-    auth_token = Token.objects.get_or_create(user=request.user)
-    context['auth_token'] = auth_token[0].key
 
     if request.method == 'POST':
         form = CreateRecipeForm(request.POST)
-        form.full_clean()
+        if not form.is_valid():
+            context['recipe_form_errors'] = form.errors
+            return render(
+                request,
+                'pages/profile.html',
+                context,
+            )
         data = form.cleaned_data
 
         new_recipe = Recipe.objects.create(
@@ -150,19 +156,16 @@ def recipe_view(request):
             user=User.objects.get(id=request.user.id),
         )
 
-        try:
-            RecipeIngredient.objects.bulk_create(
-                [
-                    RecipeIngredient(
-                        recipe=new_recipe,
-                        ingredient=ing,
-                        quantity=1,
-                    )
-                    for ing in data['ingredients']
-                ]
-            )
-        except Ingredient.DoesNotExist:
-            pass
+        RecipeIngredient.objects.bulk_create(
+            [
+                RecipeIngredient(
+                    recipe=new_recipe,
+                    ingredient=ing,
+                    quantity=1,
+                )
+                for ing in data['ingredients']
+            ]
+        )
 
         return redirect('profile')
 
@@ -201,7 +204,13 @@ def ingredient_view(request):
 
     if request.method == 'POST':
         form = CreateIngredientForm(request.POST)
-        form.full_clean()
+        if not form.is_valid():
+            context['ingredient_form_errors'] = form.errors
+            return render(
+                request,
+                'pages/profile.html',
+                context,
+            )
         data = form.cleaned_data
 
         new_ingredient = Ingredient.objects.create(

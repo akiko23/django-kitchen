@@ -140,6 +140,13 @@ class RecipeViewTest(TestCase):
 
         self.assertIn('profile', self.client.post(target_url, data=creation_attrs).headers['Location'])
 
+        # Non existent ingredient
+        creation_attrs['ingredients'] = [33141]
+        self.assertIn(
+            b'not one of the available choices',
+            self.client.post(target_url, data=creation_attrs).content,
+        )
+
 
 class IngredientViewTest(TestCase):
     url = "/ingredients"
@@ -188,6 +195,13 @@ class IngredientViewTest(TestCase):
         }
 
         self.assertEqual(self.client.post(target_url, data=creation_attrs).status_code, status.HTTP_200_OK)
+
+        # Non-existent category
+        creation_attrs['category'] = [33141]
+        self.assertIn(
+            b'not one of the available choices',
+            self.client.post(target_url, data=creation_attrs).content,
+        )
 
 
 class RecipeCategoryListViewTest(TestCase):

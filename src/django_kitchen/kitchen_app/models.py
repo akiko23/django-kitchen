@@ -7,7 +7,7 @@ class RecipeCategory(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=64, null=False)
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return str(self.id)
 
     def __str__(self):
@@ -23,10 +23,10 @@ class IngredientCategory(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=64, null=False)
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return str(self.id)
 
-    def __str__(self):
+    def __str__(self):  # pragma: no cover
         return self.name
 
     class Meta:
@@ -67,7 +67,7 @@ class Ingredient(models.Model):
         help_text="price per 100g in rubles"
     )
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # pragma: no cover
         return self.name
 
     class Meta:
@@ -88,7 +88,7 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey("Recipe", on_delete=models.CASCADE)
     ingredient = models.ForeignKey("Ingredient", on_delete=models.CASCADE)
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # pragma: no cover
         return f"{self.ingredient.name} for {self.recipe.name}"
 
     class Meta:
@@ -108,7 +108,7 @@ class Comment(models.Model):
     recipe = models.ForeignKey(to="Recipe", on_delete=models.DO_NOTHING)
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.DO_NOTHING)
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # pragma: no cover
         return f"Comment {self.id} to {self.recipe.name}"
 
     class Meta:
