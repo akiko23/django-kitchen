@@ -16,8 +16,9 @@
                 {% endfor %}
             </ul>
         </ul>
-        <button type="submit" onclick="deleteRecipe({{ recipe.id }}, '{{ auth_token }}')" class="deletebtn">delete</button>
-
+        {% if recipe.user == request.user %}
+            <button type="submit" onclick="deleteRecipe({{ recipe.id }}, '{{ auth_token }}')" class="deletebtn">delete</button>
+        {% endif %}
         {% if comments %}
             <h2>Create comment</h2>
             <h3>{{errors}}</h3>
@@ -37,8 +38,8 @@
                 {% if comment.user == request.user %}
                     <button type="button" onclick="deleteComment({{ comment.id }}, '{{ auth_token }}')" class="deleteCombtn">delete</button>
                     <br>
-                    <br>
                 {% endif %}
+                <br>
             {% endfor %}
         {% else %}
             <h2>No comments for the recipe. Be the first!</h2>

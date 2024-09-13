@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.views.generic import ListView
 from rest_framework import authentication, permissions, viewsets
@@ -182,6 +183,7 @@ def recipe_view(request):
     )
 
 
+
 def ingredient_view(request):
     if not request.user.is_authenticated:
         return redirect('homepage')
@@ -236,7 +238,6 @@ def ingredient_view(request):
 def comment_view(request):
     if request.method == 'POST':
         form = CreateCommentForm(request.POST)
-
         data = form.data
 
         target_recipe = Recipe.objects.get(id=data['recipe'])
@@ -246,9 +247,7 @@ def comment_view(request):
             recipe=target_recipe,
         )
 
-        return redirect(
-            'profile'
-        )
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
 def register(request):
@@ -292,7 +291,7 @@ def create_viewset(model_class, serializer):
         queryset = model_class.objects.all()
         serializer_class = serializer
         permission_classes = [permission_by_model(model_class)]
-        authentication_classes = [authentication.TokenAuthentication]
+        authentication_classes = [authentication.TokenAuthentication, authentication.SessionAuthentication]
 
     return ViewSet
 
@@ -306,7 +305,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = [permission_by_model(Recipe)]
-    authentication_classes = [authentication.TokenAuthentication]
+    authentication_classes = [authentication.TokenAuthentication, authentication.SessionAuthentication]
 
     def create(self, request):
         if self.request.method == "POST":
@@ -341,7 +340,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [permission_by_model(Comment)]
-    authentication_classes = [authentication.TokenAuthentication]
+    authentication_classes = [authentication.TokenAuthentication, authentication.SessionAuthentication]
 
     def create(self, request):
         if self.request.method == "POST":
@@ -393,4 +392,3 @@ def profile(request):
             'ing_form': ing_form
         }
     )
-

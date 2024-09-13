@@ -269,4 +269,4 @@ class CommentViewTest(TestCase):
             'user': self.user
         }
 
-        self.assertIn('profile', self.client.post(target_url, data=creation_attrs).headers['Location'])
+        self.assertEqual(status.HTTP_302_FOUND, self.client.post(target_url, data=creation_attrs).status_code)
