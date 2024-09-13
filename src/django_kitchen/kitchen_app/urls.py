@@ -5,7 +5,6 @@ from rest_framework.routers import DefaultRouter
 
 from . import views
 
-
 router = DefaultRouter()
 router.register(r'recipes', views.RecipeViewSet, basename='api-recipes')
 router.register(r'ingredients', views.IngredientViewSet)
@@ -34,5 +33,6 @@ urlpatterns = [
         ),
         name="swagger-ui",
     ),
-    path('api/token-auth/', drf_views.obtain_auth_token)
+    path('api/token-auth/', drf_views.obtain_auth_token),
+    path('api-auth/', include('rest_framework.urls')),
 ]
